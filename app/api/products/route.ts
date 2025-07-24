@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/database"
+import { connectToDatabase, Product, initializeSampleData } from "@/lib/database"
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,78 +10,49 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "12")
-    const offset = (page - 1) * limit
+    const skip = (page - 1) * limit
 
-    const db = getDatabase()
+    await connectToDatabase()
+    await initializeSampleData()
 
     // Build dynamic query with filters
-    let query = "SELECT * FROM products WHERE 1=1"
-    const params: any[] = []
+    const query: any = {}
 
     if (category && category !== "all") {
-      query += " AND category = ?"
-      params.push(category)
+      query.category = category
     }
 
-    if (minPrice) {
-      query += " AND price >= ?"
-      params.push(Number.parseFloat(minPrice))
-    }
-
-    if (maxPrice) {
-      query += " AND price <= ?"
-      params.push(Number.parseFloat(maxPrice))
+    if (minPrice || maxPrice) {
+      query.price = {}
+      if (minPrice) query.price.$gte = Number.parseFloat(minPrice)
+      if (maxPrice) query.price.$lte = Number.parseFloat(maxPrice)
     }
 
     if (search) {
-      query += " AND (name LIKE ? OR description LIKE ?)"
-      params.push(`%${search}%`, `%${search}%`)
+      query.$or = [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }]
     }
 
-    // Add ordering and pagination
-    query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
-    params.push(limit, offset)
-
-    const products = db.prepare(query).all(...params)
-
-    // Get total count for pagination
-    let countQuery = "SELECT COUNT(*) as total FROM products WHERE 1=1"
-    const countParams: any[] = []
-
-    if (category && category !== "all") {
-      countQuery += " AND category = ?"
-      countParams.push(category)
-    }
-
-    if (minPrice) {
-      countQuery += " AND price >= ?"
-      countParams.push(Number.parseFloat(minPrice))
-    }
-
-    if (maxPrice) {
-      countQuery += " AND price <= ?"
-      countParams.push(Number.parseFloat(maxPrice))
-    }
-
-    if (search) {
-      countQuery += " AND (name LIKE ? OR description LIKE ?)"
-      countParams.push(`%${search}%`, `%${search}%`)
-    }
-
-    const { total } = db.prepare(countQuery).get(...countParams) as { total: number }
+    const [products, total] = await Promise.all([
+      Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Product.countDocuments(query),
+    ])
 
     // Get available categories
-    const categories = db.prepare("SELECT DISTINCT category FROM products ORDER BY category").all()
+    const categories = await Product.distinct("category")
 
     return NextResponse.json({
-      products,
+      products: products.map((p) => ({
+        ...p,
+        id: p._id?.toString(),
+        image_url: p.imageUrl,
+      })),
       pagination: {
         page,
         limit,
         total,
         totalPages: Math.ceil(total / limit),
       },
-      categories: categories.map((c: any) => c.category),
+      categories: categories.sort(),
     })
   } catch (error) {
     console.error("Products fetch error:", error)

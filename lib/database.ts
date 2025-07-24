@@ -1,122 +1,142 @@
-import type { Database } from "better-sqlite3"
-import path from "path"
+import mongoose from "mongoose"
 
-let db: Database | null = null
+let isConnected = false
 
-export function getDatabase() {
-  if (!db) {
-    const dbPath = path.join(process.cwd(), "ecommerce.db")
-    const Database = require("better-sqlite3")
-    db = new Database(dbPath)
-
-    // Initialize tables
-    initializeTables()
+export async function connectToDatabase() {
+  if (isConnected) {
+    return
   }
-  return db
+
+  try {
+    const mongoUri = process.env.MONGODB_URI
+    if (!mongoUri) {
+      throw new Error("MONGODB_URI environment variable is not set")
+    }
+
+    await mongoose.connect(mongoUri)
+    isConnected = true
+    console.log("Connected to MongoDB")
+  } catch (error) {
+    console.error("MongoDB connection error:", error)
+    throw error
+  }
 }
 
-function initializeTables() {
-  if (!db) return
+// User Schema
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+})
 
-  // Users table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      email TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL,
-      name TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
+// Product Schema
+const productSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  description: { type: String },
+  price: { type: Number, required: true },
+  category: { type: String, required: true },
+  imageUrl: { type: String },
+  stock: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
+})
 
-  // Products table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      description TEXT,
-      price DECIMAL(10,2) NOT NULL,
-      category TEXT NOT NULL,
-      image_url TEXT,
-      stock INTEGER DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `)
+// Cart Item Schema
+const cartItemSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+  quantity: { type: Number, required: true, default: 1 },
+  createdAt: { type: Date, default: Date.now },
+})
 
-  // Cart items table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS cart_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      product_id INTEGER NOT NULL,
-      quantity INTEGER NOT NULL DEFAULT 1,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users (id),
-      FOREIGN KEY (product_id) REFERENCES products (id),
-      UNIQUE(user_id, product_id)
-    )
-  `)
+// Create unique compound index for cart items
+cartItemSchema.index({ userId: 1, productId: 1 }, { unique: true })
 
-  // Insert sample products
-  const insertProduct = db.prepare(`
-    INSERT OR IGNORE INTO products (name, description, price, category, image_url, stock)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `)
+export const User = mongoose.models.User || mongoose.model("User", userSchema)
+export const Product = mongoose.models.Product || mongoose.model("Product", productSchema)
+export const CartItem = mongoose.models.CartItem || mongoose.model("CartItem", cartItemSchema)
 
-  const sampleProducts = [
-    [
-      "Wireless Headphones",
-      "High-quality wireless headphones with noise cancellation",
-      199.99,
-      "Electronics",
-      "/wireless-headphones.png",
-      50,
-    ],
-    [
-      "Smartphone",
-      "Latest smartphone with advanced camera features",
-      699.99,
-      "Electronics",
-      "/modern-smartphone.png",
-      30,
-    ],
-    [
-      "Running Shoes",
-      "Comfortable running shoes for daily exercise",
-      89.99,
-      "Sports",
-      "/running-shoes-on-track.png",
-      100,
-    ],
-    [
-      "Coffee Maker",
-      "Automatic coffee maker with programmable settings",
-      149.99,
-      "Home",
-      "/modern-coffee-maker.png",
-      25,
-    ],
-    [
-      "Laptop Backpack",
-      "Durable laptop backpack with multiple compartments",
-      59.99,
-      "Accessories",
-      "/laptop-backpack.png",
-      75,
-    ],
-    [
-      "Fitness Tracker",
-      "Smart fitness tracker with heart rate monitoring",
-      129.99,
-      "Electronics",
-      "/fitness-tracker-lifestyle.png",
-      40,
-    ],
-    ["Desk Lamp", "LED desk lamp with adjustable brightness", 39.99, "Home", "/modern-desk-lamp.png", 60],
-    ["Water Bottle", "Insulated stainless steel water bottle", 24.99, "Sports", "/reusable-water-bottle.png", 120],
-  ]
+// Initialize sample data
+export async function initializeSampleData() {
+  try {
+    await connectToDatabase()
 
-  sampleProducts.forEach((product) => {
-    insertProduct.run(...product)
-  })
+    // Check if products already exist
+    const existingProducts = await Product.countDocuments()
+    if (existingProducts > 0) {
+      return // Sample data already exists
+    }
+
+    const sampleProducts = [
+      {
+        name: "Wireless Headphones",
+        description: "High-quality wireless headphones with noise cancellation",
+        price: 199.99,
+        category: "Electronics",
+        imageUrl: "/wireless-headphones.png",
+        stock: 50,
+      },
+      {
+        name: "Smartphone",
+        description: "Latest smartphone with advanced camera features",
+        price: 699.99,
+        category: "Electronics",
+        imageUrl: "/modern-smartphone.png",
+        stock: 30,
+      },
+      {
+        name: "Running Shoes",
+        description: "Comfortable running shoes for daily exercise",
+        price: 89.99,
+        category: "Sports",
+        imageUrl: "/running-shoes-on-track.png",
+        stock: 100,
+      },
+      {
+        name: "Coffee Maker",
+        description: "Automatic coffee maker with programmable settings",
+        price: 149.99,
+        category: "Home",
+        imageUrl: "/modern-coffee-maker.png",
+        stock: 25,
+      },
+      {
+        name: "Laptop Backpack",
+        description: "Durable laptop backpack with multiple compartments",
+        price: 59.99,
+        category: "Accessories",
+        imageUrl: "/laptop-backpack.png",
+        stock: 75,
+      },
+      {
+        name: "Fitness Tracker",
+        description: "Smart fitness tracker with heart rate monitoring",
+        price: 129.99,
+        category: "Electronics",
+        imageUrl: "/fitness-tracker-lifestyle.png",
+        stock: 40,
+      },
+      {
+        name: "Desk Lamp",
+        description: "LED desk lamp with adjustable brightness",
+        price: 39.99,
+        category: "Home",
+        imageUrl: "/modern-desk-lamp.png",
+        stock: 60,
+      },
+      {
+        name: "Water Bottle",
+        description: "Insulated stainless steel water bottle",
+        price: 24.99,
+        category: "Sports",
+        imageUrl: "/reusable-water-bottle.png",
+        stock: 120,
+      },
+    ]
+
+    await Product.insertMany(sampleProducts)
+    console.log("Sample products inserted successfully")
+  } catch (error) {
+    console.error("Error initializing sample data:", error)
+  }
 }

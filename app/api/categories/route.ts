@@ -1,37 +1,45 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/database"
+import { connectToDatabase, Product } from "@/lib/database"
 
 export async function GET(request: NextRequest) {
   try {
-    const db = getDatabase()
+    await connectToDatabase()
 
-    // Get all unique categories with product counts
-    const categories = db
-      .prepare(`
-      SELECT 
-        category,
-        COUNT(*) as count,
-        MIN(price) as min_price,
-        MAX(price) as max_price
-      FROM products 
-      GROUP BY category 
-      ORDER BY category
-    `)
-      .all()
+    const categories = await Product.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+          min_price: { $min: "$price" },
+          max_price: { $max: "$price" },
+        },
+      },
+      {
+        $project: {
+          category: "$_id",
+          count: 1,
+          min_price: 1,
+          max_price: 1,
+          _id: 0,
+        },
+      },
+      { $sort: { category: 1 } },
+    ])
 
     // Get overall price range
-    const priceRange = db
-      .prepare(`
-      SELECT 
-        MIN(price) as min_price,
-        MAX(price) as max_price
-      FROM products
-    `)
-      .get() as { min_price: number; max_price: number }
+    const priceRange = await Product.aggregate([
+      {
+        $group: {
+          _id: null,
+          min_price: { $min: "$price" },
+          max_price: { $max: "$price" },
+        },
+      },
+    ])
 
     return NextResponse.json({
       categories,
-      priceRange,
+      priceRange: priceRange[0] || { min_price: 0, max_price: 0 },
     })
   } catch (error) {
     console.error("Categories fetch error:", error)

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/database"
+import { connectToDatabase, CartItem, Product } from "@/lib/database"
 import { getUserFromRequest } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
@@ -9,35 +9,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const db = getDatabase()
+    await connectToDatabase()
 
-    // Get cart items with product details
-    const cartItems = db
-      .prepare(`
-        SELECT 
-          ci.id,
-          ci.quantity,
-          ci.created_at,
-          p.id as product_id,
-          p.name,
-          p.description,
-          p.price,
-          p.category,
-          p.image_url,
-          p.stock
-        FROM cart_items ci
-        JOIN products p ON ci.product_id = p.id
-        WHERE ci.user_id = ?
-        ORDER BY ci.created_at DESC
-      `)
-      .all(user.id)
+    const cartItems = await CartItem.find({ userId: user.id }).populate("productId").sort({ createdAt: -1 }).lean()
+
+    // Transform data to match expected format
+    const transformedItems = cartItems.map((item: any) => ({
+      id: item._id.toString(),
+      quantity: item.quantity,
+      created_at: item.createdAt,
+      product_id: item.productId._id.toString(),
+      name: item.productId.name,
+      description: item.productId.description,
+      price: item.productId.price,
+      category: item.productId.category,
+      image_url: item.productId.imageUrl,
+      stock: item.productId.stock,
+    }))
 
     // Calculate totals
-    const subtotal = cartItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
-    const itemCount = cartItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
+    const subtotal = transformedItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
+    const itemCount = transformedItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
 
     return NextResponse.json({
-      items: cartItems,
+      items: transformedItems,
       summary: {
         itemCount,
         subtotal: Number(subtotal.toFixed(2)),
@@ -64,42 +59,37 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid product ID or quantity" }, { status: 400 })
     }
 
-    const db = getDatabase()
+    await connectToDatabase()
 
-    // Check if product exists and has sufficient stock
-    const product = db.prepare("SELECT * FROM products WHERE id = ?").get(productId)
+    const product = await Product.findById(productId)
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
     // Check if item already exists in cart
-    const existingItem = db
-      .prepare("SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?")
-      .get(user.id, productId)
+    const existingItem = await CartItem.findOne({ userId: user.id, productId })
 
     if (existingItem) {
       // Update quantity
-      const newQuantity = (existingItem as any).quantity + quantity
-      if (newQuantity > (product as any).stock) {
+      const newQuantity = existingItem.quantity + quantity
+      if (newQuantity > product.stock) {
         return NextResponse.json({ error: "Insufficient stock" }, { status: 400 })
       }
 
-      db.prepare("UPDATE cart_items SET quantity = ? WHERE user_id = ? AND product_id = ?").run(
-        newQuantity,
-        user.id,
-        productId,
-      )
+      existingItem.quantity = newQuantity
+      await existingItem.save()
     } else {
       // Add new item
-      if (quantity > (product as any).stock) {
+      if (quantity > product.stock) {
         return NextResponse.json({ error: "Insufficient stock" }, { status: 400 })
       }
 
-      db.prepare("INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)").run(
-        user.id,
+      const newCartItem = new CartItem({
+        userId: user.id,
         productId,
         quantity,
-      )
+      })
+      await newCartItem.save()
     }
 
     return NextResponse.json({ message: "Item added to cart successfully" })
@@ -116,8 +106,8 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const db = getDatabase()
-    db.prepare("DELETE FROM cart_items WHERE user_id = ?").run(user.id)
+    await connectToDatabase()
+    await CartItem.deleteMany({ userId: user.id })
 
     return NextResponse.json({ message: "Cart cleared successfully" })
   } catch (error) {

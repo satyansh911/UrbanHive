@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/database"
+import { connectToDatabase, User } from "@/lib/database"
 import { hashPassword, generateToken } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
@@ -10,27 +10,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email, password, and name are required" }, { status: 400 })
     }
 
-    const db = getDatabase()
+    await connectToDatabase()
 
     // Check if user already exists
-    const existingUser = db.prepare("SELECT id FROM users WHERE email = ?").get(email)
+    const existingUser = await User.findOne({ email })
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
     }
 
     // Create new user
     const hashedPassword = hashPassword(password)
-    const result = db
-      .prepare(`
-      INSERT INTO users (email, password, name)
-      VALUES (?, ?, ?)
-    `)
-      .run(email, hashedPassword, name)
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      name,
+    })
+
+    const savedUser = await newUser.save()
 
     const user = {
-      id: result.lastInsertRowid as number,
-      email,
-      name,
+      id: savedUser._id.toString(),
+      email: savedUser.email,
+      name: savedUser.name,
     }
 
     const token = generateToken(user)

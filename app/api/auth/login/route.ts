@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/database"
+import { connectToDatabase, User } from "@/lib/database"
 import { verifyPassword, generateToken } from "@/lib/auth"
 
 export async function POST(request: NextRequest) {
@@ -10,10 +10,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    const db = getDatabase()
+    await connectToDatabase()
 
     // Find user
-    const user = db.prepare("SELECT * FROM users WHERE email = ?").get(email) as any
+    const user = await User.findOne({ email })
     if (!user) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userResponse = {
-      id: user.id,
+      id: user._id.toString(),
       email: user.email,
       name: user.name,
     }

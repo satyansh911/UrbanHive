@@ -1,22 +1,29 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getDatabase } from "@/lib/database"
+import { connectToDatabase, Product } from "@/lib/database"
+import mongoose from "mongoose"
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const productId = Number.parseInt(params.id)
+    const productId = params.id
 
-    if (isNaN(productId)) {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
       return NextResponse.json({ error: "Invalid product ID" }, { status: 400 })
     }
 
-    const db = getDatabase()
-    const product = db.prepare("SELECT * FROM products WHERE id = ?").get(productId)
+    await connectToDatabase()
+    const product = await Product.findById(productId).lean()
 
-    if (!product) {
+    if (!product || Array.isArray(product)) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ product })
+    return NextResponse.json({
+      product: {
+        ...product,
+        id: (product as { _id: mongoose.Types.ObjectId })._id.toString(),
+        image_url: (product as any).imageUrl,
+      },
+    })
   } catch (error) {
     console.error("Product fetch error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
