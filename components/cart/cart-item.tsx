@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import type { CartItem } from "@/lib/types"
 import { formatPrice, validateCartQuantity } from "@/lib/cart-utils"
+import { LottieSafeWrapper } from "../ui/lottie-safe-wrapper"
 
 interface CartItemProps {
   item: CartItem
@@ -72,7 +73,13 @@ export function CartItemComponent({ item, onUpdateQuantity, onRemoveItem }: Cart
                 disabled={isRemoving}
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
               >
-                <Trash2 className="h-4 w-4" />
+                <LottieSafeWrapper 
+                  src="/delete.json"
+                  size={25}
+                  autoplay={true}
+                  loop={true}
+                  fallbackIcon="🔍"
+                />
               </Button>
             </div>
 

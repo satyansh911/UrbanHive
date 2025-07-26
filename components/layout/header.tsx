@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { LottieSafeWrapper } from "../ui/lottie-safe-wrapper"
 
 interface HeaderProps {
   cartItemCount?: number
@@ -35,10 +36,14 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/products" className="flex items-center space-x-2">
-            <div className="h-8 w-8 bg-primary rounded-md flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">ES</span>
-            </div>
-            <span className="font-bold text-xl">E-Store</span>
+            <LottieSafeWrapper 
+              src="/logo.json"
+              size={60}
+              autoplay={true}
+              loop={true}
+              fallbackIcon="🔍"
+            />
+            <span className="font-bold text-xl">UrbanHive</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -55,7 +60,13 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
                 {/* Cart Button */}
                 <Button variant="ghost" size="icon" asChild className="relative">
                   <Link href="/cart">
-                    <ShoppingCart className="h-5 w-5" />
+                    <LottieSafeWrapper 
+                      src="/cart.json"
+                      size={30}
+                      autoplay={true}
+                      loop={true}
+                      fallbackIcon="🔍"
+                    />
                     {cartItemCount > 0 && (
                       <Badge
                         variant="destructive"
@@ -71,7 +82,13 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
-                      <User className="h-5 w-5" />
+                      <LottieSafeWrapper 
+                        src="/user.json"
+                        size={30}
+                        autoplay={true}
+                        loop={true}
+                        fallbackIcon="🔍"
+                      />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">

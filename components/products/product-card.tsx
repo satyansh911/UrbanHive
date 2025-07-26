@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/contexts/auth-context"
 import type { Product } from "@/lib/types"
 import { formatPrice } from "@/lib/cart-utils"
+import { LottieSafeWrapper } from "../ui/lottie-safe-wrapper"
 
 interface ProductCardProps {
   product: Product
@@ -103,7 +104,13 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             </div>
 
             <Button onClick={handleAddToCart} disabled={isLoading || product.stock === 0} className="w-full">
-              <ShoppingCart className="mr-2 h-4 w-4" />
+              <LottieSafeWrapper 
+                src="/cart.json"
+                size={25}
+                autoplay={true}
+                loop={false}
+                fallbackIcon="🔍"
+              />
               {isLoading ? "Adding..." : "Add to Cart"}
             </Button>
           </div>
