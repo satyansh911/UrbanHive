@@ -21,27 +21,26 @@ export function CartSummaryComponent({ summary, onClearCart, onCheckout, isLoadi
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-black">
             <span>Items ({summary.itemCount})</span>
             <span>{formatPrice(summary.subtotal)}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-black">
             <span>Tax (8%)</span>
             <span>{formatPrice(summary.tax)}</span>
           </div>
           <Separator />
-          <div className="flex justify-between font-semibold text-lg">
+          <div className="flex justify-between font-semibold text-black">
             <span>Total</span>
             <span className="text-primary">{formatPrice(summary.total)}</span>
           </div>
         </div>
-
         <div className="space-y-2">
-          <Button onClick={onCheckout} className="w-full" size="lg" disabled={isLoading || summary.itemCount === 0}>
+          <Button variant="antiblack" onClick={onCheckout} className="w-full" size="lg" disabled={isLoading || summary.itemCount === 0}>
             {isLoading ? "Processing..." : "Proceed to Checkout"}
           </Button>
           <Button
-            variant="outline"
+            variant="black"
             onClick={onClearCart}
             className="w-full bg-transparent"
             disabled={isLoading || summary.itemCount === 0}
@@ -49,10 +48,10 @@ export function CartSummaryComponent({ summary, onClearCart, onCheckout, isLoadi
             Clear Cart
           </Button>
         </div>
-
-        <div className="text-xs text-muted-foreground text-center">
-          <p>Secure checkout with SSL encryption</p>
-          <p>Free shipping on orders over $50</p>
+        <div className="text-xs text-black text-center">
+          <p>Secure checkout with <b>SSL encryption</b></p>
+          <br></br>
+          <p><i>Free shipping on orders over ₹999</i></p>
         </div>
       </CardContent>
     </Card>

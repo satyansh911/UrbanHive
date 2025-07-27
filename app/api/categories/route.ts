@@ -4,7 +4,6 @@ import { connectToDatabase, Product } from "@/lib/database"
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase()
-
     const categories = await Product.aggregate([
       {
         $group: {
@@ -25,8 +24,6 @@ export async function GET(request: NextRequest) {
       },
       { $sort: { category: 1 } },
     ])
-
-    // Get overall price range
     const priceRange = await Product.aggregate([
       {
         $group: {
@@ -36,7 +33,6 @@ export async function GET(request: NextRequest) {
         },
       },
     ])
-
     return NextResponse.json({
       categories,
       priceRange: priceRange[0] || { min_price: 0, max_price: 0 },

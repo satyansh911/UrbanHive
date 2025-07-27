@@ -5,18 +5,14 @@ import mongoose from "mongoose"
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const productId = params.id
-
     if (!mongoose.Types.ObjectId.isValid(productId)) {
       return NextResponse.json({ error: "Invalid product ID" }, { status: 400 })
     }
-
     await connectToDatabase()
     const product = await Product.findById(productId).lean()
-
     if (!product || Array.isArray(product)) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
-
     return NextResponse.json({
       product: {
         ...product,

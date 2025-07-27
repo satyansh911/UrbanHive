@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
-
+import { LottieSafeWrapper } from "../ui/lottie-safe-wrapper"
 const signupSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -24,15 +24,12 @@ const signupSchema = z
     message: "Passwords don't match",
     path: ["confirmPassword"],
   })
-
 type SignupFormData = z.infer<typeof signupSchema>
-
 export function SignupForm() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { register } = useAuth()
   const router = useRouter()
-
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -42,7 +39,6 @@ export function SignupForm() {
       confirmPassword: "",
     },
   })
-
   const onSubmit = async (data: SignupFormData) => {
     try {
       setError("")
@@ -55,12 +51,20 @@ export function SignupForm() {
       setIsLoading(false)
     }
   }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="container flex min-h-screen items-center justify-center bg-muted/50 p-4">
+      <Card className="w-full max-w-md shadow-gray-950 shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+          <LottieSafeWrapper 
+            src="/logo.json"
+            size={100}
+            autoplay={true}
+            loop={true}
+            fallbackIcon="🔍"
+          />
+          <CardTitle className="text-2xl font-bold">UrbanHive</CardTitle>
+          <br/>
+          <CardTitle className="text-xl font-bold">Create Account</CardTitle>
           <CardDescription>Sign up to start your shopping journey</CardDescription>
         </CardHeader>
         <CardContent>
@@ -71,7 +75,6 @@ export function SignupForm() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-
               <FormField
                 control={form.control}
                 name="name"
@@ -85,7 +88,6 @@ export function SignupForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="email"
@@ -99,7 +101,6 @@ export function SignupForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="password"
@@ -113,7 +114,6 @@ export function SignupForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="confirmPassword"
@@ -127,16 +127,14 @@ export function SignupForm() {
                   </FormItem>
                 )}
               />
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button variant="antiblack" type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Already have an account? </span>
-            <Link href="/login" className="text-primary hover:underline font-medium">
+          <div className="mt-6 text-center text-black">
+            <span className="text-black">Already have an account? </span>
+            <Link href="/login" className="text-[#0D3B66] hover:underline font-medium">
               Sign in
             </Link>
           </div>

@@ -31,11 +31,8 @@ export default function ProductsPage() {
     maxPrice: 1000,
     sortBy: "newest",
   })
-
   const { user, token } = useAuth()
   const router = useRouter()
-
-  // Fetch categories and price range
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -52,11 +49,8 @@ export default function ProductsPage() {
         console.error("Error fetching categories:", error)
       }
     }
-
     fetchCategories()
   }, [])
-
-  // Fetch products
   const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
@@ -68,11 +62,8 @@ export default function ProductsPage() {
         ...(filters.minPrice !== priceRange.min && { minPrice: filters.minPrice.toString() }),
         ...(filters.maxPrice !== priceRange.max && { maxPrice: filters.maxPrice.toString() }),
       })
-
       const response = await fetch(`/api/products?${params}`)
       const data: ProductsResponse = await response.json()
-
-      // Apply sorting
       const sortedProducts = [...data.products]
       switch (filters.sortBy) {
         case "price-low":
@@ -84,10 +75,9 @@ export default function ProductsPage() {
         case "name":
           sortedProducts.sort((a, b) => a.name.localeCompare(b.name))
           break
-        default: // newest
+        default:
           break
       }
-
       setProducts(sortedProducts)
       setPagination(data.pagination)
     } catch (error) {
@@ -97,11 +87,8 @@ export default function ProductsPage() {
       setLoading(false)
     }
   }, [filters, pagination.page, pagination.limit, priceRange])
-
-  // Fetch cart count
   const fetchCartCount = useCallback(async () => {
     if (!user || !token) return
-
     try {
       const response = await fetch("/api/cart", {
         headers: {
@@ -114,26 +101,21 @@ export default function ProductsPage() {
       console.error("Error fetching cart count:", error)
     }
   }, [user, token])
-
   useEffect(() => {
     fetchProducts()
   }, [fetchProducts])
-
   useEffect(() => {
     fetchCartCount()
   }, [fetchCartCount])
-
   const handleFiltersChange = useCallback((newFilters: typeof filters) => {
     setFilters(newFilters)
     setPagination((prev) => ({ ...prev, page: 1 }))
   }, [])
-
   const handleAddToCart = async (productId: number, quantity: number) => {
     if (!user || !token) {
       router.push("/login")
       return
     }
-
     try {
       const response = await fetch("/api/cart", {
         method: "POST",
@@ -143,7 +125,6 @@ export default function ProductsPage() {
         },
         body: JSON.stringify({ productId, quantity }),
       })
-
       if (response.ok) {
         toast.success("Product added to cart!")
         fetchCartCount()
@@ -156,30 +137,23 @@ export default function ProductsPage() {
       toast.error("Failed to add to cart")
     }
   }
-
   const handlePageChange = (page: number) => {
     setPagination((prev) => ({ ...prev, page }))
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
-
   return (
     <div className="min-h-screen bg-background">
       <Header cartItemCount={cartItemCount} />
-
-      <main className="container mx-auto px-4 py-8">
+      <main className="mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
           <aside className="lg:w-80 flex-shrink-0">
             <ProductFilters categories={categories} priceRange={priceRange} onFiltersChange={handleFiltersChange} />
           </aside>
-
-          {/* Products Content */}
           <div className="flex-1">
             <div className="mb-6">
               <h1 className="text-3xl font-bold mb-2">Products</h1>
-              <p className="text-muted-foreground">{loading ? "Loading..." : `${pagination.total} products found`}</p>
+              <p className="text-black">{loading ? "Loading..." : `${pagination.total} products found`}</p>
             </div>
-
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 8 }).map((_, i) => (
@@ -196,8 +170,6 @@ export default function ProductsPage() {
             ) : (
               <>
                 <ProductGrid products={products} onAddToCart={handleAddToCart} />
-
-                {/* Pagination */}
                 {pagination.totalPages > 1 && (
                   <div className="mt-8 flex justify-center">
                     <Pagination>
@@ -208,7 +180,6 @@ export default function ProductsPage() {
                             className={pagination.page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                           />
                         </PaginationItem>
-
                         {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                           <PaginationItem key={page}>
                             <PaginationLink
@@ -220,7 +191,6 @@ export default function ProductsPage() {
                             </PaginationLink>
                           </PaginationItem>
                         ))}
-
                         <PaginationItem>
                           <PaginationNext
                             onClick={() => handlePageChange(pagination.page + 1)}

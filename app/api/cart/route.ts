@@ -8,12 +8,8 @@ export async function GET(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
     await connectToDatabase()
-
     const cartItems = await CartItem.find({ userId: user.id }).populate("productId").sort({ createdAt: -1 }).lean()
-
-    // Transform data to match expected format
     const transformedItems = cartItems.map((item: any) => ({
       id: item._id.toString(),
       quantity: item.quantity,
@@ -26,17 +22,14 @@ export async function GET(request: NextRequest) {
       image_url: item.productId.imageUrl,
       stock: item.productId.stock,
     }))
-
-    // Calculate totals
     const subtotal = transformedItems.reduce((sum: number, item: any) => sum + item.price * item.quantity, 0)
     const itemCount = transformedItems.reduce((sum: number, item: any) => sum + item.quantity, 0)
-
     return NextResponse.json({
       items: transformedItems,
       summary: {
         itemCount,
         subtotal: Number(subtotal.toFixed(2)),
-        tax: Number((subtotal * 0.08).toFixed(2)), // 8% tax
+        tax: Number((subtotal * 0.08).toFixed(2)),
         total: Number((subtotal * 1.08).toFixed(2)),
       },
     })
@@ -52,38 +45,27 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
     const { productId, quantity = 1 } = await request.json()
-
     if (!productId || quantity < 1) {
       return NextResponse.json({ error: "Invalid product ID or quantity" }, { status: 400 })
     }
-
     await connectToDatabase()
-
     const product = await Product.findById(productId)
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 })
     }
-
-    // Check if item already exists in cart
     const existingItem = await CartItem.findOne({ userId: user.id, productId })
-
     if (existingItem) {
-      // Update quantity
       const newQuantity = existingItem.quantity + quantity
       if (newQuantity > product.stock) {
         return NextResponse.json({ error: "Insufficient stock" }, { status: 400 })
       }
-
       existingItem.quantity = newQuantity
       await existingItem.save()
     } else {
-      // Add new item
       if (quantity > product.stock) {
         return NextResponse.json({ error: "Insufficient stock" }, { status: 400 })
       }
-
       const newCartItem = new CartItem({
         userId: user.id,
         productId,
@@ -91,7 +73,6 @@ export async function POST(request: NextRequest) {
       })
       await newCartItem.save()
     }
-
     return NextResponse.json({ message: "Item added to cart successfully" })
   } catch (error) {
     console.error("Add to cart error:", error)
@@ -105,10 +86,8 @@ export async function DELETE(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
     await connectToDatabase()
     await CartItem.deleteMany({ userId: user.id })
-
     return NextResponse.json({ message: "Cart cleared successfully" })
   } catch (error) {
     console.error("Clear cart error:", error)

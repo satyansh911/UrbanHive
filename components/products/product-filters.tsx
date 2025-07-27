@@ -25,9 +25,13 @@ interface ProductFiltersProps {
 export function ProductFilters({ categories, priceRange, onFiltersChange }: ProductFiltersProps) {
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("all")
-  const [priceValues, setPriceValues] = useState([priceRange.min, priceRange.max])
+  const [priceValues, setPriceValues] = useState([0, 100000])
   const [sortBy, setSortBy] = useState("newest")
-
+  useEffect(() => {
+    if (priceRange && typeof priceRange.min === "number" && typeof priceRange.max === "number") {
+      setPriceValues([priceRange.min, priceRange.max])
+    }
+  }, [priceRange])
   const handleFiltersChange = useCallback(() => {
     onFiltersChange({
       search,
@@ -37,41 +41,39 @@ export function ProductFilters({ categories, priceRange, onFiltersChange }: Prod
       sortBy,
     })
   }, [search, category, priceValues, sortBy, onFiltersChange])
-
   useEffect(() => {
     handleFiltersChange()
   }, [handleFiltersChange])
-
   const clearFilters = () => {
     setSearch("")
     setCategory("all")
-    setPriceValues([priceRange.min, priceRange.max])
+    const safeMin = typeof priceRange.min === "number" ? priceRange.min : 0
+    const safeMax = typeof priceRange.max === "number" ? priceRange.max : 100000
+    setPriceValues([safeMin, safeMax])
     setSortBy("newest")
   }
-
+  const safeMinPrice = typeof priceRange.min === "number" ? priceRange.min : 0
+  const safeMaxPrice = typeof priceRange.max === "number" ? priceRange.max : 100000
   const hasActiveFilters =
     search ||
     category !== "all" ||
-    priceValues[0] !== priceRange.min ||
-    priceValues[1] !== priceRange.max ||
+    priceValues[0] !== safeMinPrice ||
+    priceValues[1] !== safeMaxPrice ||
     sortBy !== "newest"
-
   return (
     <Card className="sticky top-4">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Filters</CardTitle>
           {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
+            <Button variant="antiblack" size="sm" onClick={clearFilters}>
               <X className="h-4 w-4 mr-1" />
               Clear
             </Button>
           )}
         </div>
       </CardHeader>
-
       <CardContent className="space-y-6">
-        {/* Search */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Search Products</label>
           <div className="relative">
@@ -84,10 +86,7 @@ export function ProductFilters({ categories, priceRange, onFiltersChange }: Prod
             />
           </div>
         </div>
-
         <Separator />
-
-        {/* Category Filter */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Category</label>
           <Select value={category} onValueChange={setCategory}>
@@ -104,31 +103,21 @@ export function ProductFilters({ categories, priceRange, onFiltersChange }: Prod
             </SelectContent>
           </Select>
         </div>
-
         <Separator />
-
-        {/* Price Range */}
         <div className="space-y-4">
           <label className="text-sm font-medium">Price Range</label>
           <div className="px-2">
             <Slider
               value={priceValues}
               onValueChange={setPriceValues}
-              min={priceRange.min}
-              max={priceRange.max}
+              min={safeMinPrice}
+              max={safeMaxPrice}
               step={10}
               className="w-full"
             />
           </div>
-          <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>${priceValues[0]}</span>
-            <span>${priceValues[1]}</span>
-          </div>
         </div>
-
         <Separator />
-
-        {/* Sort By */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Sort By</label>
           <Select value={sortBy} onValueChange={setSortBy}>
@@ -143,8 +132,6 @@ export function ProductFilters({ categories, priceRange, onFiltersChange }: Prod
             </SelectContent>
           </Select>
         </div>
-
-        {/* Active Filters */}
         {hasActiveFilters && (
           <>
             <Separator />
@@ -153,9 +140,9 @@ export function ProductFilters({ categories, priceRange, onFiltersChange }: Prod
               <div className="flex flex-wrap gap-2">
                 {search && <Badge variant="secondary">Search: {search}</Badge>}
                 {category !== "all" && <Badge variant="secondary">Category: {category}</Badge>}
-                {(priceValues[0] !== priceRange.min || priceValues[1] !== priceRange.max) && (
-                  <Badge variant="secondary">
-                    ${priceValues[0]} - ${priceValues[1]}
+                {(priceValues[0] !== safeMinPrice || priceValues[1] !== safeMaxPrice) && (
+                  <Badge variant="black">
+                    ₹{priceValues[0]} - ₹{priceValues[1]}
                   </Badge>
                 )}
                 {sortBy !== "newest" && <Badge variant="secondary">Sort: {sortBy}</Badge>}

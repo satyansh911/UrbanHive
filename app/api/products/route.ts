@@ -11,35 +11,25 @@ export async function GET(request: NextRequest) {
     const page = Number.parseInt(searchParams.get("page") || "1")
     const limit = Number.parseInt(searchParams.get("limit") || "12")
     const skip = (page - 1) * limit
-
     await connectToDatabase()
     await initializeSampleData()
-
-    // Build dynamic query with filters
     const query: any = {}
-
     if (category && category !== "all") {
       query.category = category
     }
-
     if (minPrice || maxPrice) {
       query.price = {}
       if (minPrice) query.price.$gte = Number.parseFloat(minPrice)
       if (maxPrice) query.price.$lte = Number.parseFloat(maxPrice)
     }
-
     if (search) {
       query.$or = [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }]
     }
-
     const [products, total] = await Promise.all([
       Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Product.countDocuments(query),
     ])
-
-    // Get available categories
     const categories = await Product.distinct("category")
-
     return NextResponse.json({
       products: products.map((p) => ({
         ...p,

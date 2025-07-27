@@ -6,13 +6,11 @@ export async function connectToDatabase() {
   if (isConnected) {
     return
   }
-
   try {
     const mongoUri = process.env.MONGODB_URI
     if (!mongoUri) {
       throw new Error("MONGODB_URI environment variable is not set")
     }
-
     await mongoose.connect(mongoUri)
     isConnected = true
     console.log("Connected to MongoDB")
@@ -21,52 +19,39 @@ export async function connectToDatabase() {
     throw error
   }
 }
-
-// User Schema
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   name: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
 })
-
-// Product Schema
 const productSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String },
   price: { type: Number, required: true },
   category: { type: String, required: true },
   imageUrl: { type: String },
+  gifUrl: { type: String },
   stock: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 })
-
-// Cart Item Schema
 const cartItemSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
   quantity: { type: Number, required: true, default: 1 },
   createdAt: { type: Date, default: Date.now },
 })
-
-// Create unique compound index for cart items
 cartItemSchema.index({ userId: 1, productId: 1 }, { unique: true })
-
 export const User = mongoose.models.User || mongoose.model("User", userSchema)
 export const Product = mongoose.models.Product || mongoose.model("Product", productSchema)
 export const CartItem = mongoose.models.CartItem || mongoose.model("CartItem", cartItemSchema)
-
-// Initialize sample data
 export async function initializeSampleData() {
   try {
     await connectToDatabase()
-
-    // Check if products already exist
     const existingProducts = await Product.countDocuments()
     if (existingProducts > 0) {
-      return // Sample data already exists
+      return
     }
-
     const sampleProducts = [
       {
         name: "Wireless Headphones",
@@ -89,7 +74,7 @@ export async function initializeSampleData() {
         description: "Comfortable running shoes for daily exercise",
         price: 89.99,
         category: "Sports",
-        imageUrl: "/running-shoes-on-track.png",
+        imageUrl: "/Bally_shoe_animation.png",
         stock: 100,
       },
       {
@@ -133,7 +118,6 @@ export async function initializeSampleData() {
         stock: 120,
       },
     ]
-
     await Product.insertMany(sampleProducts)
     console.log("Sample products inserted successfully")
   } catch (error) {

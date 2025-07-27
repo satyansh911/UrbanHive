@@ -12,20 +12,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
-
+import { LottieSafeWrapper } from "../ui/lottie-safe-wrapper"
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 })
-
 type LoginFormData = z.infer<typeof loginSchema>
-
 export function LoginForm() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
   const router = useRouter()
-
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -33,7 +30,6 @@ export function LoginForm() {
       password: "",
     },
   })
-
   const onSubmit = async (data: LoginFormData) => {
     try {
       setError("")
@@ -46,12 +42,20 @@ export function LoginForm() {
       setIsLoading(false)
     }
   }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/50 p-4">
-      <Card className="w-full max-w-md">
+    <div className="container flex min-h-screen items-center justify-center bg-muted/50 p-4">
+      <Card className="w-full max-w-md shadow-gray-950 shadow-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+          <LottieSafeWrapper 
+            src="/logo.json"
+            size={100}
+            autoplay={true}
+            loop={true}
+            fallbackIcon="🔍"
+          />
+          <CardTitle className="text-2xl font-bold">UrbanHive</CardTitle>
+          <br></br>
+          <CardTitle className="text-xl font-bold">Welcome Back</CardTitle>
           <CardDescription>Sign in to your account to continue shopping</CardDescription>
         </CardHeader>
         <CardContent>
@@ -62,7 +66,6 @@ export function LoginForm() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-
               <FormField
                 control={form.control}
                 name="email"
@@ -76,7 +79,6 @@ export function LoginForm() {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="password"
@@ -90,16 +92,14 @@ export function LoginForm() {
                   </FormItem>
                 )}
               />
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button variant="antiblack" type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </Form>
-
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <Link href="/signup" className="text-primary hover:underline font-medium">
+          <div className="mt-6 text-center text-black">
+            <span className="text-black">Don't have an account? </span>
+            <Link href="/signup" className="text-[#0D3B66] hover:underline font-medium">
               Sign up
             </Link>
           </div>

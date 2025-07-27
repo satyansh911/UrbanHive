@@ -24,17 +24,14 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
   const { user, logout } = useAuth()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-
   const handleLogout = () => {
     logout()
     router.push("/login")
   }
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4">
+      <div className="mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
           <Link href="/products" className="flex items-center space-x-2">
             <LottieSafeWrapper 
               src="/logo.json"
@@ -45,20 +42,15 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
             />
             <span className="font-bold text-xl">UrbanHive</span>
           </Link>
-
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/products" className="text-foreground hover:text-primary transition-colors">
+            <Link href="/products" className="text-black hover:text-primary transition-colors">
               Products
             </Link>
           </nav>
-
-          {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
             {user ? (
               <>
-                {/* Cart Button */}
-                <Button variant="ghost" size="icon" asChild className="relative">
+                <Button variant="action" size="icon" asChild className="relative">
                   <Link href="/cart">
                     <LottieSafeWrapper 
                       src="/cart.json"
@@ -77,11 +69,9 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
                     )}
                   </Link>
                 </Button>
-
-                {/* User Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="action" size="icon">
                       <LottieSafeWrapper 
                         src="/user.json"
                         size={30}
@@ -92,8 +82,8 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <div className="px-2 py-1.5 text-sm font-medium">{user.name}</div>
-                    <div className="px-2 py-1.5 text-xs text-muted-foreground">{user.email}</div>
+                    <div className="px-2 py-1.5 text-black font-medium">{user.name}</div>
+                    <div className="px-2 py-1.5 text-xs text-black">{user.email}</div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
@@ -112,8 +102,6 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
                 </Button>
               </div>
             )}
-
-            {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
@@ -124,14 +112,12 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
             </Button>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t py-4">
             <nav className="flex flex-col space-y-2">
               <Link
                 href="/products"
-                className="px-2 py-2 text-foreground hover:text-primary transition-colors"
+                className="px-2 py-2 text-black hover:text-primary transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Products

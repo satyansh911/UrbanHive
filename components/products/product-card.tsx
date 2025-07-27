@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Image from "next/image"
 import { ShoppingCart, Plus, Minus } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -20,10 +20,8 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const [quantity, setQuantity] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useAuth()
-
   const handleAddToCart = async () => {
     if (!user || !onAddToCart) return
-
     setIsLoading(true)
     try {
       await onAddToCart(product.id, quantity)
@@ -32,19 +30,17 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       setIsLoading(false)
     }
   }
-
   const incrementQuantity = () => {
     if (quantity < product.stock) {
       setQuantity((prev) => prev + 1)
     }
   }
-
   const decrementQuantity = () => {
     if (quantity > 1) {
       setQuantity((prev) => prev - 1)
     }
   }
-
+  const lottieRef = useRef<any>(null);
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg">
       <div className="relative aspect-square overflow-hidden">
@@ -54,7 +50,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           fill
           className="object-cover transition-transform group-hover:scale-105"
         />
-        <Badge variant="secondary" className="absolute top-2 right-2">
+        <Badge variant="black" className="absolute top-2 right-2">
           {product.category}
         </Badge>
         {product.stock < 10 && product.stock > 0 && (
@@ -68,22 +64,20 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           </Badge>
         )}
       </div>
-
       <CardContent className="p-4">
         <div className="space-y-2">
-          <h3 className="font-semibold text-lg line-clamp-1">{product.name}</h3>
-          <p className="text-muted-foreground text-sm line-clamp-2">{product.description}</p>
+          <h3 className="font-semibold text-black line-clamp-1">{product.name}</h3>
+          <p className="text-black line-clamp-2">{product.description}</p>
           <div className="flex items-center justify-between">
             <span className="text-2xl font-bold text-primary">{formatPrice(product.price)}</span>
-            <span className="text-sm text-muted-foreground">Stock: {product.stock}</span>
+            <span className="text-black">Stock: {product.stock}</span>
           </div>
         </div>
-
         {user && product.stock > 0 && (
           <div className="mt-4 space-y-3">
             <div className="flex items-center justify-center gap-2">
               <Button
-                variant="outline"
+                variant="black"
                 size="icon"
                 onClick={decrementQuantity}
                 disabled={quantity <= 1}
@@ -93,7 +87,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               </Button>
               <span className="w-8 text-center font-medium">{quantity}</span>
               <Button
-                variant="outline"
+                variant="antiblack"
                 size="icon"
                 onClick={incrementQuantity}
                 disabled={quantity >= product.stock}
@@ -102,9 +96,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
-
-            <Button onClick={handleAddToCart} disabled={isLoading || product.stock === 0} className="w-full">
-              <LottieSafeWrapper 
+            <Button variant="black" onClick={handleAddToCart} disabled={isLoading || product.stock === 0} className="w-full flex items-center justify-center gap-2" onMouseEnter={() => lottieRef.current?.play()} onMouseLeave={() => lottieRef.current?.stop()}>
+              <LottieSafeWrapper
+                lottieRef={lottieRef} 
                 src="/cart.json"
                 size={25}
                 autoplay={true}
@@ -115,7 +109,6 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             </Button>
           </div>
         )}
-
         {!user && (
           <div className="mt-4">
             <Button variant="outline" className="w-full bg-transparent" disabled>

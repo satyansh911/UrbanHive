@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   description: "Professional e-commerce application",
   generator: "v0.app",
 }
-
 export default function RootLayout({
   children,
 }: Readonly<{

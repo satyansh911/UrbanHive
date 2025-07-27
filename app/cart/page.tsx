@@ -23,28 +23,21 @@ export default function CartPage() {
   })
   const [loading, setLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
-
   const { user, token } = useAuth()
   const router = useRouter()
-
-  // Redirect if not authenticated
   useEffect(() => {
     if (!user && !loading) {
       router.push("/login")
     }
   }, [user, loading, router])
-
-  // Fetch cart data
   const fetchCart = useCallback(async () => {
     if (!user || !token) return
-
     try {
       const response = await fetch("/api/cart", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       })
-
       if (response.ok) {
         const data = await response.json()
         setCartItems(data.items)
@@ -59,15 +52,11 @@ export default function CartPage() {
       setLoading(false)
     }
   }, [user, token])
-
   useEffect(() => {
     fetchCart()
   }, [fetchCart])
-
-  // Update item quantity
   const handleUpdateQuantity = async (itemId: number, quantity: number) => {
     if (!token) return
-
     setIsUpdating(true)
     try {
       const response = await fetch(`/api/cart/${itemId}`, {
@@ -78,7 +67,6 @@ export default function CartPage() {
         },
         body: JSON.stringify({ quantity }),
       })
-
       if (response.ok) {
         await fetchCart()
         toast.success("Cart updated")
@@ -93,11 +81,8 @@ export default function CartPage() {
       setIsUpdating(false)
     }
   }
-
-  // Remove item from cart
   const handleRemoveItem = async (itemId: number) => {
     if (!token) return
-
     setIsUpdating(true)
     try {
       const response = await fetch(`/api/cart/${itemId}`, {
@@ -106,7 +91,6 @@ export default function CartPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
       if (response.ok) {
         await fetchCart()
         toast.success("Item removed from cart")
@@ -121,11 +105,8 @@ export default function CartPage() {
       setIsUpdating(false)
     }
   }
-
-  // Clear entire cart
   const handleClearCart = async () => {
     if (!token) return
-
     setIsUpdating(true)
     try {
       const response = await fetch("/api/cart", {
@@ -134,7 +115,6 @@ export default function CartPage() {
           Authorization: `Bearer ${token}`,
         },
       })
-
       if (response.ok) {
         await fetchCart()
         toast.success("Cart cleared")
@@ -149,52 +129,44 @@ export default function CartPage() {
       setIsUpdating(false)
     }
   }
-
-  // Handle checkout (placeholder)
   const handleCheckout = () => {
     toast.success("Checkout functionality would be implemented here!")
   }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <Header cartItemCount={cartSummary.itemCount} />
-        <main className="container mx-auto px-4 py-8">
+        <main className="mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="mt-4 text-muted-foreground">Loading cart...</p>
+              <p className="mt-4 text-black">Loading cart...</p>
             </div>
           </div>
         </main>
       </div>
     )
   }
-
   if (!user) {
     return null
   }
-
   return (
     <div className="min-h-screen bg-background">
       <Header cartItemCount={cartSummary.itemCount} />
-
-      <main className="container mx-auto px-4 py-8">
-        {/* Header */}
+      <main className="mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="action" size="icon" asChild>
             <Link href="/products">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div>
             <h1 className="text-3xl font-bold">Shopping Cart</h1>
-            <p className="text-muted-foreground">
+            <p className="text-black">
               {cartItems.length === 0 ? "Your cart is empty" : `${cartSummary.itemCount} items in your cart`}
             </p>
           </div>
         </div>
-
         {cartItems.length === 0 ? (
           <EmptyCart />
         ) : (
@@ -210,8 +182,6 @@ export default function CartPage() {
                 />
               ))}
             </div>
-
-            {/* Cart Summary */}
             <div className="lg:col-span-1">
               <CartSummaryComponent
                 summary={cartSummary}
