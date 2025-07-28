@@ -12,6 +12,7 @@ import { CartSummaryComponent } from "@/components/cart/cart-summary"
 import { EmptyCart } from "@/components/cart/empty-cart"
 import { useAuth } from "@/contexts/auth-context"
 import type { CartItem, CartSummary } from "@/lib/types"
+import Loader from "@/components/ui/Loader"
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -139,7 +140,7 @@ export default function CartPage() {
         <main className="mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <Loader/>
               <p className="mt-4 text-black">Loading cart...</p>
             </div>
           </div>
