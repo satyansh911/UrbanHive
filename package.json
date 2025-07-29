@@ -52,6 +52,7 @@
     "geist": "latest",
     "input-otp": "1.4.1",
     "jsonwebtoken": "latest",
+    "ldrs": "^1.1.7",
     "lucide-react": "^0.454.0",
     "mongoose": "^8.18.0",
     "next": "15.2.4",

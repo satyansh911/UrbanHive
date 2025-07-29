@@ -3,7 +3,9 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
-import Loader from "@/components/ui/Loader"
+import { Grid } from 'ldrs/react';
+import 'ldrs/react/Grid.css'
+import Loading from "@/components/ui/Loading"
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -20,7 +22,9 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <Loader/>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loading/>
+        </div>
         <p className="mt-4 text-black">Loading...</p>
       </div>
     </div>

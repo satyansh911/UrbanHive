@@ -12,7 +12,9 @@ import { CartSummaryComponent } from "@/components/cart/cart-summary"
 import { EmptyCart } from "@/components/cart/empty-cart"
 import { useAuth } from "@/contexts/auth-context"
 import type { CartItem, CartSummary } from "@/lib/types"
-import Loader from "@/components/ui/Loader"
+import { Grid } from "ldrs/react"
+import 'ldrs/react/Grid.css'
+import Loading from "@/components/ui/Loading"
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -140,7 +142,9 @@ export default function CartPage() {
         <main className="mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <Loader/>
+              <div className="flex items-center justify-center min-h-screen">
+                <Loading/>
+              </div>
               <p className="mt-4 text-black">Loading cart...</p>
             </div>
           </div>
