@@ -59,7 +59,7 @@ export function CartItemComponent({ item, onUpdateQuantity, onRemoveItem }: Cart
                 </Badge>
               </div>
               <Button
-                variant="ghost"
+                variant="antiblack"
                 size="icon"
                 onClick={handleRemove}
                 disabled={isRemoving}

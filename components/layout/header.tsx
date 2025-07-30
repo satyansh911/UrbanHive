@@ -86,7 +86,13 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
                     <div className="px-2 py-1.5 text-xs text-black">{user.email}</div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="mr-2 h-4 w-4" />
+                      <LottieSafeWrapper 
+                        src="/logout.json"
+                        size={30}
+                        autoplay={true}
+                        loop={true}
+                        fallbackIcon="🔍"
+                      />
                       Sign out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -94,16 +100,16 @@ export function Header({ cartItemCount = 0 }: HeaderProps) {
               </>
             ) : (
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" asChild>
+                <Button variant="antiblack" asChild>
                   <Link href="/login">Sign In</Link>
                 </Button>
-                <Button asChild>
+                <Button variant="antiblack" asChild>
                   <Link href="/signup">Sign Up</Link>
                 </Button>
               </div>
             )}
             <Button
-              variant="ghost"
+              variant="antiblack"
               size="icon"
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

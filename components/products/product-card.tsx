@@ -54,12 +54,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {product.category}
         </Badge>
         {product.stock < 10 && product.stock > 0 && (
-          <Badge variant="destructive" className="absolute top-2 left-2">
+          <Badge variant="black" className="absolute top-2 left-2">
             Only {product.stock} left
           </Badge>
         )}
         {product.stock === 0 && (
-          <Badge variant="destructive" className="absolute top-2 left-2">
+          <Badge variant="black" className="absolute top-2 left-2">
             Out of Stock
           </Badge>
         )}
@@ -111,7 +111,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         )}
         {!user && (
           <div className="mt-4">
-            <Button variant="outline" className="w-full bg-transparent" disabled>
+            <Button variant="antiblack" className="w-full bg-transparent" disabled>
               Sign in to purchase
             </Button>
           </div>
