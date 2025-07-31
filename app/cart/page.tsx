@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Loader2Icon } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/layout/header"
@@ -15,6 +15,7 @@ import type { CartItem, CartSummary } from "@/lib/types"
 import { Grid } from "ldrs/react"
 import 'ldrs/react/Grid.css'
 import Loading from "@/components/ui/Loading"
+import Loader from "@/components/ui/Loader"
 
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
@@ -29,10 +30,13 @@ export default function CartPage() {
   const { user, token } = useAuth()
   const router = useRouter()
   useEffect(() => {
-    if (!user && !loading) {
+  if (!user && !loading) {
+    const timer = setTimeout(() => {
       router.push("/login")
-    }
-  }, [user, loading, router])
+    }, 1500)
+    return () => clearTimeout(timer)
+  }
+}, [user, loading, router])
   const fetchCart = useCallback(async () => {
     if (!user || !token) return
     try {
@@ -143,9 +147,9 @@ export default function CartPage() {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="flex items-center justify-center min-h-screen">
-                <Loading/>
+                <Loader/>
+                <p className="mt-4 text-black">Loading cart...</p>
               </div>
-              <p className="mt-4 text-black">Loading cart...</p>
             </div>
           </div>
         </main>

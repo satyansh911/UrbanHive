@@ -11,14 +11,18 @@ export default function HomePage() {
   const { user, loading } = useAuth()
   const router = useRouter()
   useEffect(() => {
-    if (!loading) {
+  if (!loading) {
+    const timer = setTimeout(() => {
       if (user) {
         router.push("/products")
       } else {
         router.push("/login")
       }
-    }
-  }, [user, loading, router])
+    }, 1500)
+
+    return () => clearTimeout(timer)
+  }
+}, [user, loading, router])
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
